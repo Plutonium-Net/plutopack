@@ -1,0 +1,14 @@
+{
+  "name": "plutopack",
+  "version": "0.1.0",
+  "description": "A lightweight, portable package format and toolkit for the web.",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "SEE LICENSE IN LICENSE"
+}
