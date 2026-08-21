@@ -677,8 +677,10 @@
         inspect
     } from "./src/index.js";
 
-    const GAME_ROOT =
-        "/__plutopack__/";
+    const GAME_ROOT = new URL(
+    "./__plutopack__/",
+    window.location.href
+).pathname;
 
     const folderInput =
         document.getElementById(
@@ -1287,6 +1289,18 @@
             );
 
         await navigator.serviceWorker.ready;
+
+if (!navigator.serviceWorker.controller) {
+    await new Promise(resolve => {
+        navigator.serviceWorker.addEventListener(
+            "controllerchange",
+            resolve,
+            { once: true }
+        );
+    });
+}
+
+return serviceWorkerRegistration;
 
         return serviceWorkerRegistration;
     }
