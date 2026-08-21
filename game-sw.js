@@ -1,5 +1,9 @@
 const CACHE_NAME = "plutopack-game-v1";
-const GAME_ROOT = "/__plutopack__/";
+
+const GAME_ROOT = new URL(
+    "./__plutopack__/",
+    self.registration.scope
+).pathname;
 
 self.addEventListener("install", event => {
     event.waitUntil(
@@ -12,12 +16,19 @@ self.addEventListener("activate", event => {
         (async () => {
             await self.clients.claim();
 
-            const keys = await caches.keys();
+            const cacheNames =
+                await caches.keys();
 
             await Promise.all(
-                keys
-                    .filter(key => key !== CACHE_NAME)
-                    .map(key => caches.delete(key))
+                cacheNames
+                    .filter(
+                        name =>
+                            name !== CACHE_NAME
+                    )
+                    .map(
+                        name =>
+                            caches.delete(name)
+                    )
             );
         })()
     );
@@ -35,7 +46,9 @@ self.addEventListener("message", event => {
 
     if (message.type === "MOUNT") {
         event.waitUntil(
-            mountPackage(message.files || [])
+            mountPackage(
+                message.files || []
+            )
                 .then(() => {
                     if (event.ports[0]) {
                         event.ports[0].postMessage({
@@ -83,8 +96,9 @@ self.addEventListener("message", event => {
 });
 
 self.addEventListener("fetch", event => {
+    const request = event.request;
     const url = new URL(
-        event.request.url
+        request.url
     );
 
     if (
@@ -96,9 +110,7 @@ self.addEventListener("fetch", event => {
     }
 
     event.respondWith(
-        serveGameFile(
-            event.request
-        )
+        serveGameFile(request)
     );
 });
 
@@ -118,8 +130,9 @@ async function mountPackage(files) {
         await cache.keys();
 
     await Promise.all(
-        existing.map(request =>
-            cache.delete(request)
+        existing.map(
+            request =>
+                cache.delete(request)
         )
     );
 
@@ -144,10 +157,13 @@ async function mountPackage(files) {
             );
         }
 
-        const url =
+        const fileUrl =
             new URL(
-                GAME_ROOT + path,
-                self.location.origin
+                path,
+                new URL(
+                    GAME_ROOT,
+                    self.location.origin
+                )
             );
 
         const headers =
@@ -169,7 +185,8 @@ async function mountPackage(files) {
         if (
             body instanceof ArrayBuffer
         ) {
-            body = new Uint8Array(body);
+            body =
+                new Uint8Array(body);
         }
 
         const response =
@@ -183,7 +200,9 @@ async function mountPackage(files) {
             );
 
         await cache.put(
-            new Request(url.href),
+            new Request(
+                fileUrl.href
+            ),
             response
         );
     }
@@ -220,13 +239,31 @@ async function serveGameFile(request) {
             );
 
     if (!relativePath) {
-        return notFound(
-            "PlutoPack entry file was not specified."
+        return new Response(
+            "PlutoPack entry file was not specified.",
+            {
+                status: 404,
+                statusText: "Not Found",
+                headers: {
+                    "Content-Type":
+                        "text/plain; charset=utf-8"
+                }
+            }
         );
     }
 
-    return notFound(
-        `PlutoPack file not found: ${relativePath}`
+    return new Response(
+        `PlutoPack file not found: ${relativePath}`,
+        {
+            status: 404,
+            statusText: "Not Found",
+            headers: {
+                "Content-Type":
+                    "text/plain; charset=utf-8",
+                "Cache-Control":
+                    "no-store"
+            }
+        }
     );
 }
 
@@ -240,26 +277,21 @@ async function clearPackage() {
         await cache.keys();
 
     await Promise.all(
-        requests.map(request =>
-            cache.delete(request)
+        requests.map(
+            request =>
+                cache.delete(request)
         )
     );
 }
 
 function normalizePath(path) {
-    let normalized =
+    const parts =
         path
             .replaceAll(
                 "\\",
                 "/"
             )
-            .replace(
-                /^\/+/,
-                ""
-            );
-
-    const parts =
-        normalized.split("/");
+            .split("/");
 
     const result = [];
 
@@ -393,25 +425,5 @@ function getMimeType(path) {
     return (
         types[extension] ||
         "application/octet-stream"
-    );
-}
-
-function notFound(
-    message
-) {
-    return new Response(
-        message ||
-            "PlutoPack file not found.",
-        {
-            status: 404,
-            statusText: "Not Found",
-            headers: {
-                "Content-Type":
-                    "text/plain; charset=utf-8",
-
-                "Cache-Control":
-                    "no-store"
-            }
-        }
     );
 }
