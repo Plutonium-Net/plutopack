@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>PlutoPack</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            color-scheme: dark;
+            font-family:
+                Inter,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #080808;
+            color: #f5f5f5;
+        }
+
+        header {
+            padding: 28px 32px;
+            border-bottom: 1px solid #242424;
+            background: #0c0c0c;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        header p {
+            margin: 6px 0 0;
+            color: #888;
+            font-size: 14px;
+        }
+
+        main {
+            width: min(
+                1200px,
+                calc(100% - 32px)
+            );
+
+            margin: 32px auto;
+
+            display: grid;
+            gap: 24px;
+        }
+
+        section {
+            padding: 24px;
+
+            background: #101010;
+
+            border: 1px solid #242424;
+            border-radius: 14px;
+        }
+
+        section h2 {
+            margin: 0 0 6px;
+            font-size: 21px;
+        }
+
+        .description {
+            margin: 0 0 22px;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .drop-zone {
+            min-height: 170px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 24px;
+
+            text-align: center;
+
+            border: 1px dashed #3a3a3a;
+            border-radius: 12px;
+
+            transition:
+                border-color 0.15s,
+                background 0.15s;
+        }
+
+        .drop-zone.dragging {
+            background: #171717;
+            border-color: #fff;
+        }
+
+        .drop-zone-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .drop-zone strong {
+            font-size: 16px;
+        }
+
+        .drop-zone span {
+            color: #777;
+            font-size: 13px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+
+            padding: 12px 14px;
+
+            background: #090909;
+            color: #fff;
+
+            border: 1px solid #303030;
+            border-radius: 8px;
+
+            outline: none;
+
+            font: inherit;
+        }
+
+        input[type="text"]:focus {
+            border-color: #666;
+        }
+
+        .fields {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 14px;
+
+            margin-top: 18px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .field label {
+            color: #888;
+            font-size: 12px;
+        }
+
+        button {
+            padding: 11px 16px;
+
+            background: #f5f5f5;
+            color: #080808;
+
+            border: 1px solid #353535;
+            border-radius: 8px;
+
+            font: inherit;
+            font-size: 14px;
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition:
+                opacity 0.15s,
+                transform 0.15s;
+        }
+
+        button:hover {
+            opacity: 0.88;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button.secondary {
+            background: #171717;
+            color: #fff;
+            border-color: #303030;
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .status {
+            min-height: 20px;
+            margin-top: 14px;
+
+            color: #777;
+            font-size: 13px;
+        }
+
+        .status.loading {
+            color: #ccc;
+        }
+
+        .status.success {
+            color: #aaa;
+        }
+
+        .status.error {
+            color: #ff7777;
+        }
+
+        .file-list {
+            max-height: 260px;
+
+            margin-top: 18px;
+
+            overflow: auto;
+
+            background: #0a0a0a;
+
+            border: 1px solid #242424;
+            border-radius: 9px;
+        }
+
+        .file-list-item {
+            display: flex;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 9px 12px;
+
+            border-bottom: 1px solid #191919;
+
+            font-family:
+                ui-monospace,
+                SFMono-Regular,
+                Consolas,
+                monospace;
+
+            font-size: 12px;
+        }
+
+        .file-list-item:last-child {
+            border-bottom: 0;
+        }
+
+        .file-size {
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .package-info {
+            display: none;
+
+            margin-top: 18px;
+            padding: 14px;
+
+            background: #0a0a0a;
+
+            border: 1px solid #242424;
+            border-radius: 9px;
+        }
+
+        .package-info.visible {
+            display: block;
+        }
+
+        .package-info-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            color: #666;
+            font-size: 11px;
+        }
+
+        .info-value {
+            color: #ddd;
+            word-break: break-word;
+        }
+
+        .player-container {
+            display: none;
+
+            margin-top: 20px;
+
+            overflow: hidden;
+
+            background: #000;
+
+            border: 1px solid #292929;
+            border-radius: 10px;
+        }
+
+        .player-container.visible {
+            display: block;
+        }
+
+        iframe {
+            display: block;
+
+            width: 100%;
+            height: 700px;
+
+            border: 0;
+
+            background: #000;
+        }
+
+        footer {
+            padding: 0 32px 30px;
+
+            text-align: center;
+
+            color: #555;
+            font-size: 12px;
+        }
+
+        @media (max-width: 760px) {
+            .fields,
+            .package-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            iframe {
+                height: 500px;
+            }
+
+            header {
+                padding: 22px 18px;
+            }
+
+            main {
+                width: calc(100% - 20px);
+                margin: 20px auto;
+            }
+
+            section {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>PlutoPack</h1>
+    <p>
+        Package and run web applications directly in your browser.
+    </p>
+</header>
+
+<main>
+
+    <section>
+        <h2>Pack a Game</h2>
+
+        <p class="description">
+            Select a game folder containing its index.html and assets.
+        </p>
+
+        <div
+            class="drop-zone"
+            id="folderDropZone"
+        >
+            <div class="drop-zone-content">
+                <strong>
+                    Select a game folder
+                </strong>
+
+                <span>
+                    Choose a folder containing index.html and its assets.
+                </span>
+
+                <button
+                    type="button"
+                    id="selectFolderButton"
+                >
+                    Select Folder
+                </button>
+
+                <input
+                    id="folderInput"
+                    type="file"
+                    webkitdirectory
+                    directory
+                    multiple
+                    hidden
+                >
+            </div>
+        </div>
+
+        <div class="fields">
+
+            <div class="field">
+                <label for="packageName">
+                    Package Name
+                </label>
+
+                <input
+                    id="packageName"
+                    type="text"
+                    value="My Game"
+                    maxlength="256"
+                >
+            </div>
+
+            <div class="field">
+                <label for="packageVersion">
+                    Version
+                </label>
+
+                <input
+                    id="packageVersion"
+                    type="text"
+                    value="1.0.0"
+                    maxlength="128"
+                >
+            </div>
+
+            <div class="field">
+                <label for="entryFile">
+                    Entry File
+                </label>
+
+                <input
+                    id="entryFile"
+                    type="text"
+                    value="index.html"
+                    maxlength="4096"
+                >
+            </div>
+
+        </div>
+
+        <div class="actions">
+
+            <button
+                id="buildButton"
+                disabled
+            >
+                Build PlutoPack
+            </button>
+
+            <button
+                id="clearFolderButton"
+                class="secondary"
+                disabled
+            >
+                Clear
+            </button>
+
+        </div>
+
+        <div
+            id="packStatus"
+            class="status"
+        ></div>
+
+        <div
+            id="selectedFiles"
+            class="file-list"
+            hidden
+        ></div>
+
+    </section>
+
+    <section>
+
+        <h2>Play a PlutoPack</h2>
+
+        <p class="description">
+            Upload a .plutopack package and run the included game.
+        </p>
+
+        <div
+            class="drop-zone"
+            id="packageDropZone"
+        >
+            <div class="drop-zone-content">
+
+                <strong>
+                    Drop a PlutoPack here
+                </strong>
+
+                <span>
+                    Or select a .plutopack file from your computer.
+                </span>
+
+                <button
+                    type="button"
+                    id="selectPackageButton"
+                >
+                    Select PlutoPack
+                </button>
+
+                <input
+                    id="packageInput"
+                    type="file"
+                    accept=".plutopack,application/octet-stream"
+                    hidden
+                >
+
+            </div>
+        </div>
+
+        <div
+            id="packageInfo"
+            class="package-info"
+        >
+
+            <div class="package-info-grid">
+
+                <div class="info-item">
+                    <span class="info-label">
+                        Name
+                    </span>
+
+                    <span
+                        id="infoName"
+                        class="info-value"
+                    >
+                        —
+                    </span>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">
+                        Version
+                    </span>
+
+                    <span
+                        id="infoVersion"
+                        class="info-value"
+                    >
+                        —
+                    </span>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">
+                        Entry
+                    </span>
+
+                    <span
+                        id="infoEntry"
+                        class="info-value"
+                    >
+                        —
+                    </span>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">
+                        Files
+                    </span>
+
+                    <span
+                        id="infoFiles"
+                        class="info-value"
+                    >
+                        —
+                    </span>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">
+                        Package Size
+                    </span>
+
+                    <span
+                        id="infoSize"
+                        class="info-value"
+                    >
+                        —
+                    </span>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">
+                        Data Size
+                    </span>
+
+                    <span
+                        id="infoDataSize"
+                        class="info-value"
+                    >
+                        —
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="actions">
+
+                <button
+                    id="playButton"
+                    disabled
+                >
+                    Play Game
+                </button>
+
+                <button
+                    id="closeGameButton"
+                    class="secondary"
+                >
+                    Close Game
+                </button>
+
+            </div>
+
+        </div>
+
+        <div
+            id="playStatus"
+            class="status"
+        ></div>
+
+        <div
+            id="playerContainer"
+            class="player-container"
+        >
+            <iframe
+                id="gameFrame"
+                title="PlutoPack Game Player"
+                allow="fullscreen; autoplay; gamepad"
+            ></iframe>
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+    PlutoPack
+</footer>
+
+<script type="module">
+    import {
+        pack,
+        unpack,
+        validate,
+        inspect
+    } from "./src/index.js";
+
+    const GAME_ROOT =
+        "/__plutopack__/";
+
+    const folderInput =
+        document.getElementById(
+            "folderInput"
+        );
+
+    const selectFolderButton =
+        document.getElementById(
+            "selectFolderButton"
+        );
+
+    const folderDropZone =
+        document.getElementById(
+            "folderDropZone"
+        );
+
+    const buildButton =
+        document.getElementById(
+            "buildButton"
+        );
+
+    const clearFolderButton =
+        document.getElementById(
+            "clearFolderButton"
+        );
+
+    const packageName =
+        document.getElementById(
+            "packageName"
+        );
+
+    const packageVersion =
+        document.getElementById(
+            "packageVersion"
+        );
+
+    const entryFile =
+        document.getElementById(
+            "entryFile"
+        );
+
+    const packStatus =
+        document.getElementById(
+            "packStatus"
+        );
+
+    const selectedFiles =
+        document.getElementById(
+            "selectedFiles"
+        );
+
+    const packageInput =
+        document.getElementById(
+            "packageInput"
+        );
+
+    const selectPackageButton =
+        document.getElementById(
+            "selectPackageButton"
+        );
+
+    const packageDropZone =
+        document.getElementById(
+            "packageDropZone"
+        );
+
+    const packageInfo =
+        document.getElementById(
+            "packageInfo"
+        );
+
+    const playButton =
+        document.getElementById(
+            "playButton"
+        );
+
+    const closeGameButton =
+        document.getElementById(
+            "closeGameButton"
+        );
+
+    const playStatus =
+        document.getElementById(
+            "playStatus"
+        );
+
+    const playerContainer =
+        document.getElementById(
+            "playerContainer"
+        );
+
+    const gameFrame =
+        document.getElementById(
+            "gameFrame"
+        );
+
+    const infoName =
+        document.getElementById(
+            "infoName"
+        );
+
+    const infoVersion =
+        document.getElementById(
+            "infoVersion"
+        );
+
+    const infoEntry =
+        document.getElementById(
+            "infoEntry"
+        );
+
+    const infoFiles =
+        document.getElementById(
+            "infoFiles"
+        );
+
+    const infoSize =
+        document.getElementById(
+            "infoSize"
+        );
+
+    const infoDataSize =
+        document.getElementById(
+            "infoDataSize"
+        );
+
+    let selectedGameFiles = [];
+    let loadedPackage = null;
+    let serviceWorkerRegistration = null;
+
+    function setStatus(
+        element,
+        message,
+        type = ""
+    ) {
+        element.textContent = message;
+        element.className =
+            `status ${type}`.trim();
+    }
+
+    function formatBytes(bytes) {
+        if (bytes === 0) {
+            return "0 B";
+        }
+
+        const units = [
+            "B",
+            "KB",
+            "MB",
+            "GB",
+            "TB"
+        ];
+
+        const exponent = Math.min(
+            Math.floor(
+                Math.log(bytes) /
+                Math.log(1024)
+            ),
+            units.length - 1
+        );
+
+        const value =
+            bytes /
+            Math.pow(
+                1024,
+                exponent
+            );
+
+        return `${value.toFixed(
+            exponent === 0 ? 0 : 2
+        )} ${units[exponent]}`;
+    }
+
+    function normalizePath(path) {
+        const parts =
+            path
+                .replaceAll("\\", "/")
+                .split("/");
+
+        const result = [];
+
+        for (const part of parts) {
+            if (
+                !part ||
+                part === "."
+            ) {
+                continue;
+            }
+
+            if (part === "..") {
+                if (result.length) {
+                    result.pop();
+                }
+
+                continue;
+            }
+
+            result.push(part);
+        }
+
+        return result.join("/");
+    }
+
+    function getRelativePath(file) {
+        if (
+            file.webkitRelativePath
+        ) {
+            const parts =
+                file.webkitRelativePath
+                    .split("/");
+
+            parts.shift();
+
+            return parts.join("/");
+        }
+
+        return file.name;
+    }
+
+    function getMimeType(path) {
+        const extension =
+            path
+                .split(".")
+                .pop()
+                .toLowerCase();
+
+        const types = {
+            html: "text/html",
+            htm: "text/html",
+            css: "text/css",
+            js: "text/javascript",
+            mjs: "text/javascript",
+            json: "application/json",
+            txt: "text/plain",
+            xml: "application/xml",
+            svg: "image/svg+xml",
+            png: "image/png",
+            jpg: "image/jpeg",
+            jpeg: "image/jpeg",
+            gif: "image/gif",
+            webp: "image/webp",
+            avif: "image/avif",
+            ico: "image/x-icon",
+            wasm: "application/wasm",
+            mp3: "audio/mpeg",
+            wav: "audio/wav",
+            ogg: "audio/ogg",
+            mp4: "video/mp4",
+            webm: "video/webm",
+            ogv: "video/ogg",
+            pdf: "application/pdf"
+        };
+
+        return (
+            types[extension] ||
+            "application/octet-stream"
+        );
+    }
+
+    function renderSelectedFiles() {
+        selectedFiles.innerHTML = "";
+
+        for (
+            const file of selectedGameFiles
+        ) {
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+            item.className =
+                "file-list-item";
+
+            const path =
+                document.createElement(
+                    "span"
+                );
+
+            path.textContent =
+                file.path;
+
+            const size =
+                document.createElement(
+                    "span"
+                );
+
+            size.className =
+                "file-size";
+
+            size.textContent =
+                formatBytes(
+                    file.data.byteLength
+                );
+
+            item.append(
+                path,
+                size
+            );
+
+            selectedFiles.appendChild(
+                item
+            );
+        }
+
+        selectedFiles.hidden =
+            selectedGameFiles.length === 0;
+    }
+
+    async function loadGameFolder(
+        fileList
+    ) {
+        const files =
+            Array.from(fileList);
+
+        if (!files.length) {
+            return;
+        }
+
+        setStatus(
+            packStatus,
+            "Reading game files...",
+            "loading"
+        );
+
+        try {
+            const normalized = [];
+
+            for (
+                const file of files
+            ) {
+                const path =
+                    normalizePath(
+                        getRelativePath(file)
+                    );
+
+                if (!path) {
+                    continue;
+                }
+
+                normalized.push({
+                    path,
+                    mime:
+                        file.type ||
+                        getMimeType(path),
+                    data:
+                        new Uint8Array(
+                            await file.arrayBuffer()
+                        )
+                });
+            }
+
+            const entry =
+                normalizePath(
+                    entryFile.value.trim()
+                );
+
+            if (
+                !normalized.some(
+                    file =>
+                        file.path === entry
+                )
+            ) {
+                throw new Error(
+                    `Could not find ${entry} in the selected folder.`
+                );
+            }
+
+            selectedGameFiles =
+                normalized;
+
+            renderSelectedFiles();
+
+            buildButton.disabled =
+                false;
+
+            clearFolderButton.disabled =
+                false;
+
+            setStatus(
+                packStatus,
+                `${normalized.length} files loaded.`,
+                "success"
+            );
+        } catch (error) {
+            selectedGameFiles = [];
+
+            renderSelectedFiles();
+
+            buildButton.disabled = true;
+            clearFolderButton.disabled = true;
+
+            setStatus(
+                packStatus,
+                error.message,
+                "error"
+            );
+        }
+    }
+
+    selectFolderButton.addEventListener(
+        "click",
+        () => folderInput.click()
+    );
+
+    folderInput.addEventListener(
+        "change",
+        () =>
+            loadGameFolder(
+                folderInput.files
+            )
+    );
+
+    clearFolderButton.addEventListener(
+        "click",
+        () => {
+            selectedGameFiles = [];
+
+            folderInput.value = "";
+
+            renderSelectedFiles();
+
+            buildButton.disabled = true;
+            clearFolderButton.disabled = true;
+
+            setStatus(
+                packStatus,
+                ""
+            );
+        }
+    );
+
+    folderDropZone.addEventListener(
+        "dragover",
+        event => {
+            event.preventDefault();
+
+            folderDropZone.classList.add(
+                "dragging"
+            );
+        }
+    );
+
+    folderDropZone.addEventListener(
+        "dragleave",
+        () => {
+            folderDropZone.classList.remove(
+                "dragging"
+            );
+        }
+    );
+
+    folderDropZone.addEventListener(
+        "drop",
+        event => {
+            event.preventDefault();
+
+            folderDropZone.classList.remove(
+                "dragging"
+            );
+
+            if (
+                event.dataTransfer.files.length
+            ) {
+                loadGameFolder(
+                    event.dataTransfer.files
+                );
+            }
+        }
+    );
+
+    buildButton.addEventListener(
+        "click",
+        async () => {
+            if (
+                !selectedGameFiles.length
+            ) {
+                return;
+            }
+
+            buildButton.disabled =
+                true;
+
+            setStatus(
+                packStatus,
+                "Building PlutoPack...",
+                "loading"
+            );
+
+            try {
+                const output =
+                    await pack({
+                        name:
+                            packageName.value
+                                .trim(),
+
+                        version:
+                            packageVersion.value
+                                .trim(),
+
+                        entry:
+                            normalizePath(
+                                entryFile.value
+                                    .trim()
+                            ),
+
+                        files:
+                            selectedGameFiles,
+
+                        metadata: {
+                            creator:
+                                "PlutoPack"
+                        }
+                    });
+
+                const blob =
+                    new Blob(
+                        [output],
+                        {
+                            type:
+                                "application/octet-stream"
+                        }
+                    );
+
+                const url =
+                    URL.createObjectURL(
+                        blob
+                    );
+
+                const name =
+                    (
+                        packageName.value
+                            .trim() ||
+                        "package"
+                    )
+                        .replace(
+                            /[<>:"/\\|?*\x00-\x1F]/g,
+                            "_"
+                        )
+                        .trim();
+
+                const anchor =
+                    document.createElement(
+                        "a"
+                    );
+
+                anchor.href = url;
+
+                anchor.download =
+                    `${name}.plutopack`;
+
+                document.body.appendChild(
+                    anchor
+                );
+
+                anchor.click();
+
+                anchor.remove();
+
+                URL.revokeObjectURL(
+                    url
+                );
+
+                setStatus(
+                    packStatus,
+                    `Built ${name}.plutopack (${formatBytes(output.byteLength)}).`,
+                    "success"
+                );
+            } catch (error) {
+                setStatus(
+                    packStatus,
+                    error.message,
+                    "error"
+                );
+            } finally {
+                buildButton.disabled =
+                    !selectedGameFiles.length;
+            }
+        }
+    );
+
+    async function registerServiceWorker() {
+        if (
+            !("serviceWorker" in navigator)
+        ) {
+            throw new Error(
+                "This browser does not support Service Workers."
+            );
+        }
+
+        if (
+            location.protocol !== "https:" &&
+            location.hostname !== "localhost" &&
+            location.hostname !== "127.0.0.1"
+        ) {
+            throw new Error(
+                "PlutoPack requires HTTPS or localhost for the game player."
+            );
+        }
+
+        serviceWorkerRegistration =
+            await navigator.serviceWorker.register(
+                "./game-sw.js",
+                {
+                    scope: "./"
+                }
+            );
+
+        await navigator.serviceWorker.ready;
+
+        return serviceWorkerRegistration;
+    }
+
+    async function mountPackage(
+        files
+    ) {
+        const registration =
+            serviceWorkerRegistration ||
+            await registerServiceWorker();
+
+        const worker =
+            registration.active;
+
+        if (!worker) {
+            throw new Error(
+                "The PlutoPack Service Worker is not active yet."
+            );
+        }
+
+        await new Promise(
+            (resolve, reject) => {
+                const channel =
+                    new MessageChannel();
+
+                const timeout =
+                    setTimeout(
+                        () => {
+                            reject(
+                                new Error(
+                                    "Timed out while mounting PlutoPack."
+                                )
+                            );
+                        },
+                        10000
+                    );
+
+                channel.port1.onmessage =
+                    event => {
+                        clearTimeout(
+                            timeout
+                        );
+
+                        if (
+                            event.data?.error
+                        ) {
+                            reject(
+                                new Error(
+                                    event.data.error
+                                )
+                            );
+
+                            return;
+                        }
+
+                        resolve();
+                    };
+
+                worker.postMessage(
+                    {
+                        type: "MOUNT",
+                        files
+                    },
+                    [
+                        channel.port2
+                    ]
+                );
+            }
+        );
+    }
+
+    async function loadPackage(
+        file
+    ) {
+        closeGame();
+
+        setStatus(
+            playStatus,
+            "Loading PlutoPack...",
+            "loading"
+        );
+
+        try {
+            const bytes =
+                new Uint8Array(
+                    await file.arrayBuffer()
+                );
+
+            validate(bytes);
+
+            const details =
+                inspect(bytes);
+
+            const unpacked =
+                unpack(bytes);
+
+            loadedPackage = {
+                bytes,
+                manifest:
+                    unpacked.manifest,
+                files:
+                    unpacked.files,
+                details
+            };
+
+            infoName.textContent =
+                details.package.name;
+
+            infoVersion.textContent =
+                details.package.version;
+
+            infoEntry.textContent =
+                details.package.entry;
+
+            infoFiles.textContent =
+                String(
+                    details.files
+                );
+
+            infoSize.textContent =
+                formatBytes(
+                    details.size
+                );
+
+            infoDataSize.textContent =
+                formatBytes(
+                    details.dataSize
+                );
+
+            packageInfo.classList.add(
+                "visible"
+            );
+
+            playButton.disabled =
+                false;
+
+            setStatus(
+                playStatus,
+                `${details.package.name} loaded successfully.`,
+                "success"
+            );
+        } catch (error) {
+            loadedPackage = null;
+
+            packageInfo.classList.remove(
+                "visible"
+            );
+
+            playButton.disabled =
+                true;
+
+            setStatus(
+                playStatus,
+                error.message,
+                "error"
+            );
+        }
+    }
+
+    selectPackageButton.addEventListener(
+        "click",
+        () => packageInput.click()
+    );
+
+    packageInput.addEventListener(
+        "change",
+        () => {
+            const file =
+                packageInput.files?.[0];
+
+            if (file) {
+                loadPackage(file);
+            }
+        }
+    );
+
+    packageDropZone.addEventListener(
+        "dragover",
+        event => {
+            event.preventDefault();
+
+            packageDropZone.classList.add(
+                "dragging"
+            );
+        }
+    );
+
+    packageDropZone.addEventListener(
+        "dragleave",
+        () => {
+            packageDropZone.classList.remove(
+                "dragging"
+            );
+        }
+    );
+
+    packageDropZone.addEventListener(
+        "drop",
+        event => {
+            event.preventDefault();
+
+            packageDropZone.classList.remove(
+                "dragging"
+            );
+
+            const file =
+                event.dataTransfer.files?.[0];
+
+            if (file) {
+                loadPackage(file);
+            }
+        }
+    );
+
+    async function playGame() {
+        if (!loadedPackage) {
+            return;
+        }
+
+        playButton.disabled =
+            true;
+
+        setStatus(
+            playStatus,
+            "Mounting PlutoPack...",
+            "loading"
+        );
+
+        try {
+            await mountPackage(
+                loadedPackage.files
+            );
+
+            const entry =
+                normalizePath(
+                    loadedPackage.manifest.entry
+                );
+
+            gameFrame.src =
+                GAME_ROOT +
+                entry;
+
+            playerContainer.classList.add(
+                "visible"
+            );
+
+            setStatus(
+                playStatus,
+                "Game is running.",
+                "success"
+            );
+
+            playerContainer.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        } catch (error) {
+            setStatus(
+                playStatus,
+                error.message,
+                "error"
+            );
+        } finally {
+            playButton.disabled =
+                false;
+        }
+    }
+
+    function closeGame() {
+        gameFrame.src =
+            "about:blank";
+
+        playerContainer.classList.remove(
+            "visible"
+        );
+
+        setStatus(
+            playStatus,
+            ""
+        );
+
+        if (
+            serviceWorkerRegistration?.active
+        ) {
+            serviceWorkerRegistration.active
+                .postMessage({
+                    type: "CLEAR"
+                });
+        }
+    }
+
+    playButton.addEventListener(
+        "click",
+        playGame
+    );
+
+    closeGameButton.addEventListener(
+        "click",
+        closeGame
+    );
+
+    try {
+        await registerServiceWorker();
+
+        setStatus(
+            playStatus,
+            "PlutoPack game engine ready.",
+            "success"
+        );
+    } catch (error) {
+        setStatus(
+            playStatus,
+            error.message,
+            "error"
+        );
+    }
+</script>
+
+</body>
+</html>
