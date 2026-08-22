@@ -198,6 +198,7 @@ An implementation does not need to use the official PlutoPack tooling as long as
 | [Specification](./SPEC.md)        | Complete PlutoPack format specification |
 | [License](./LICENSE)              | PlutoPack licensing terms               |
 | [Contributing](./CONTRIBUTING.md) | Contribution guidelines                 |
+| [Addition](./ADDITION.md)         | How To Add To Website                   |
 
 Documentation will expand as the format develops.
 
