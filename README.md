@@ -224,3 +224,5 @@ PlutoPack is developed as part of **Plutonium-Net**, an organization focused on 
 PlutoPack is distributed under the **Plutonium License (PL) v1.0**.
 
 See [`LICENSE`](./LICENSE) for the complete license text.
+
+![PlutoPack](/pics/plutopack.png)
