@@ -2,9 +2,9 @@ cff-version: 1.2.0
 message: "If you use PlutoPack, please cite it as below."
 authors:
 
-* family-names: "xXmizzeryXx"
+- family-names: "xXmizzeryXx"
   given-names: "Mizz"
-* family-names: "Craf1ed"
+- family-names: "Craf1ed"
   given-names: "Crafted"
   title: "PlutoPack"
   version: 0.1.0
